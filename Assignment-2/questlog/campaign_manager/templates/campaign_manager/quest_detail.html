@@ -1,0 +1,137 @@
+{% extends "campaign_manager/base.html" %}
+
+{% block title %}{{ quest.name }} â€” QuestLog{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <nav class="breadcrumb">
+      <a href="{% url 'campaign_detail' pk=quest.campaign.pk %}">{{ quest.campaign.name }}</a>
+      &rsaquo; {{ quest.name }}
+    </nav>
+    <h1>{{ quest.name }}</h1>
+    <p class="page-subtitle">
+      Given by {{ quest.given_by.name }}
+      &bull;
+      <span class="badge badge-status-{{ quest.status }}">{{ quest.get_status_display }}</span>
+      &bull;
+      <span class="badge badge-difficulty-{{ quest.difficulty }}">{{ quest.get_difficulty_display }}</span>
+    </p>
+  </div>
+  <div class="header-actions">
+    {% if is_dm %}
+      <a href="{% url 'objective_create' quest_pk=quest.pk %}" class="btn btn-secondary">+ Add Objective</a>
+      <a href="{% url 'quest_edit' pk=quest.pk %}" class="btn btn-primary">Edit Quest</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="two-col">
+  <section>
+    <div class="card">
+      <h2>Quest Brief</h2>
+      {% if quest.description %}
+        <p class="campaign-description">{{ quest.description }}</p>
+      {% else %}
+        <p class="text-muted">No description recorded.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <h2>Rewards and Status</h2>
+      <div class="stat-grid">
+        <div class="stat">
+          <span class="stat-label">Gold Reward</span>
+          <span class="stat-number">{{ quest.reward_gold }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">XP Reward</span>
+          <span class="stat-number">{{ quest.reward_xp }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Objectives Complete</span>
+          <span class="stat-number">{{ completed_objectives }}/{{ objectives|length }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Objectives</h2>
+    {% if is_dm %}
+      <a href="{% url 'objective_create' quest_pk=quest.pk %}" class="btn btn-secondary btn-sm">+ Add Objective</a>
+    {% endif %}
+  </div>
+
+  {% if objectives %}
+    <div class="encounter-list">
+      {% for objective in objectives %}
+        <div class="card encounter-card">
+          <div class="encounter-header">
+            <h3>{{ objective.description }}</h3>
+            <div class="encounter-badges">
+              {% if objective.is_completed %}
+                <span class="badge badge-quest-completed">Completed</span>
+              {% else %}
+                <span class="badge badge-quest-open">Open</span>
+              {% endif %}
+              {% if is_dm %}
+                <form method="post" action="{% url 'objective_toggle' pk=objective.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-secondary btn-xs">
+                    {% if objective.is_completed %}Mark Open{% else %}Mark Complete{% endif %}
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>No objectives have been added yet.</p>
+    </div>
+  {% endif %}
+</section>
+
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Session History</h2>
+  </div>
+
+  {% if session_logs %}
+    <div class="encounter-list">
+      {% for session_quest in session_logs %}
+        <div class="card encounter-card">
+          <div class="encounter-header">
+            <h3>
+              <a href="{% url 'session_detail' pk=session_quest.session.pk %}">
+                Session #{{ session_quest.session.session_number }}
+              </a>
+            </h3>
+            <div class="encounter-badges">
+              <span class="badge badge-session-log">{{ session_quest.session.date }}</span>
+            </div>
+          </div>
+          {% if session_quest.progress_notes %}
+            <p class="encounter-description">{{ session_quest.progress_notes|linebreaksbr }}</p>
+          {% else %}
+            <p class="text-muted">No progress notes recorded.</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>This quest has not been linked to any sessions yet.</p>
+    </div>
+  {% endif %}
+</section>
+
+{% endblock %}

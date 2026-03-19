@@ -15,16 +15,36 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from .models import Campaign, CampaignPlayer, Character, Session, Encounter, Item, CharacterItem
+from .models import (
+    Campaign,
+    CampaignPlayer,
+    Character,
+    Session,
+    Encounter,
+    Item,
+    CharacterItem,
+    NPC,
+    Quest,
+    QuestObjective,
+    SessionQuest,
+)
 from .forms import (
     RegistrationForm,
     CampaignForm,
     CharacterForm,
     SessionForm,
+    NPCForm,
+    QuestForm,
+    QuestObjectiveForm,
     EncounterForm,
+    SessionQuestForm,
     ItemForm,
     AddExistingItemForm,
 )
+
+
+def _is_campaign_member(campaign, user):
+    return CampaignPlayer.objects.filter(campaign=campaign, user=user).exists()
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -82,10 +102,21 @@ def dashboard(request):
         campaign__in=campaign_ids
     ).select_related('campaign').order_by('-date')[:5]
 
+    active_quests = Quest.objects.filter(
+        campaign__in=campaign_ids,
+        status__in=['not_started', 'active'],
+    ).select_related('campaign', 'given_by').order_by('campaign__name', 'name')[:6]
+
+    recent_quest_progress = SessionQuest.objects.filter(
+        session__campaign__in=campaign_ids
+    ).select_related('session', 'session__campaign', 'quest').order_by('-session__date')[:5]
+
     return render(request, 'campaign_manager/dashboard.html', {
         'campaigns':       campaigns,
         'characters':      characters,
         'recent_sessions': recent_sessions,
+        'active_quests': active_quests,
+        'recent_quest_progress': recent_quest_progress,
     })
 
 
@@ -134,6 +165,8 @@ def campaign_detail(request, pk):
     memberships = CampaignPlayer.objects.filter(campaign=campaign).select_related('user')
     characters  = Character.objects.filter(campaign=campaign).select_related('player')
     sessions    = Session.objects.filter(campaign=campaign).order_by('session_number')
+    npcs        = NPC.objects.filter(campaign=campaign).order_by('name')
+    quests      = Quest.objects.filter(campaign=campaign).select_related('given_by').order_by('name')
 
     # Context flags for the template to decide what buttons to show
     is_member = CampaignPlayer.objects.filter(campaign=campaign, user=request.user).exists()
@@ -144,6 +177,8 @@ def campaign_detail(request, pk):
         'memberships': memberships,
         'characters':  characters,
         'sessions':    sessions,
+        'npcs':        npcs,
+        'quests':      quests,
         'is_member':   is_member,
         'is_dm':       is_dm,
     })
@@ -239,6 +274,152 @@ def campaign_join(request, pk):
 
 
 # ─────────────────────────────────────────────────────────────────────
+@login_required
+def npc_create(request, campaign_pk):
+    """Creates a new NPC under a campaign. Only the DM can do this."""
+    campaign = get_object_or_404(Campaign, pk=campaign_pk)
+
+    if campaign.dungeon_master != request.user:
+        messages.error(request, "Only the Dungeon Master can add NPCs.")
+        return redirect('campaign_detail', pk=campaign_pk)
+
+    if request.method == 'POST':
+        form = NPCForm(request.POST)
+        if form.is_valid():
+            npc = form.save(commit=False)
+            npc.campaign = campaign
+            npc.save()
+            messages.success(request, f'NPC "{npc.name}" added to {campaign.name}.')
+            return redirect('campaign_detail', pk=campaign_pk)
+    else:
+        form = NPCForm()
+
+    return render(request, 'campaign_manager/npc_form.html', {
+        'form': form,
+        'campaign': campaign,
+        'title': f'New NPC - {campaign.name}',
+    })
+
+
+@login_required
+def quest_create(request, campaign_pk):
+    """Creates a new quest under a campaign. Only the DM can do this."""
+    campaign = get_object_or_404(Campaign, pk=campaign_pk)
+
+    if campaign.dungeon_master != request.user:
+        messages.error(request, "Only the Dungeon Master can create quests.")
+        return redirect('campaign_detail', pk=campaign_pk)
+
+    if request.method == 'POST':
+        form = QuestForm(request.POST, campaign=campaign)
+        if form.is_valid():
+            quest = form.save(commit=False)
+            quest.campaign = campaign
+            quest.save()
+            messages.success(request, f'Quest "{quest.name}" has been created.')
+            return redirect('quest_detail', pk=quest.pk)
+    else:
+        form = QuestForm(campaign=campaign)
+
+    return render(request, 'campaign_manager/quest_form.html', {
+        'form': form,
+        'campaign': campaign,
+        'title': f'New Quest - {campaign.name}',
+    })
+
+
+@login_required
+def quest_detail(request, pk):
+    """Shows a quest, its objectives, and the sessions where it progressed."""
+    quest = get_object_or_404(Quest.objects.select_related('campaign', 'given_by'), pk=pk)
+    objectives = QuestObjective.objects.filter(quest=quest).order_by('id')
+    session_logs = SessionQuest.objects.filter(quest=quest).select_related(
+        'session', 'session__campaign'
+    ).order_by('session__date', 'session__session_number')
+    is_member = _is_campaign_member(quest.campaign, request.user)
+    is_dm = quest.campaign.dungeon_master == request.user
+    completed_objectives = objectives.filter(is_completed=True).count()
+
+    return render(request, 'campaign_manager/quest_detail.html', {
+        'quest': quest,
+        'objectives': objectives,
+        'session_logs': session_logs,
+        'is_member': is_member,
+        'is_dm': is_dm,
+        'completed_objectives': completed_objectives,
+    })
+
+
+@login_required
+def quest_edit(request, pk):
+    """Edits an existing quest. Only the DM can do this."""
+    quest = get_object_or_404(Quest.objects.select_related('campaign'), pk=pk)
+
+    if quest.campaign.dungeon_master != request.user:
+        messages.error(request, "Only the Dungeon Master can edit quests.")
+        return redirect('quest_detail', pk=pk)
+
+    if request.method == 'POST':
+        form = QuestForm(request.POST, instance=quest, campaign=quest.campaign)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Quest "{quest.name}" has been updated.')
+            return redirect('quest_detail', pk=pk)
+    else:
+        form = QuestForm(instance=quest, campaign=quest.campaign)
+
+    return render(request, 'campaign_manager/quest_form.html', {
+        'form': form,
+        'campaign': quest.campaign,
+        'quest': quest,
+        'title': f'Edit Quest - {quest.name}',
+    })
+
+
+@login_required
+def objective_create(request, quest_pk):
+    """Adds a quest objective. Only the DM can do this."""
+    quest = get_object_or_404(Quest.objects.select_related('campaign'), pk=quest_pk)
+
+    if quest.campaign.dungeon_master != request.user:
+        messages.error(request, "Only the Dungeon Master can add objectives.")
+        return redirect('quest_detail', pk=quest_pk)
+
+    if request.method == 'POST':
+        form = QuestObjectiveForm(request.POST)
+        if form.is_valid():
+            objective = form.save(commit=False)
+            objective.quest = quest
+            objective.save()
+            messages.success(request, "Objective added.")
+            return redirect('quest_detail', pk=quest_pk)
+    else:
+        form = QuestObjectiveForm()
+
+    return render(request, 'campaign_manager/objective_form.html', {
+        'form': form,
+        'quest': quest,
+        'title': f'Add Objective - {quest.name}',
+    })
+
+
+@login_required
+def objective_toggle(request, pk):
+    """Toggles the completion state of a quest objective. Only the DM can do this."""
+    objective = get_object_or_404(QuestObjective.objects.select_related('quest', 'quest__campaign'), pk=pk)
+
+    if objective.quest.campaign.dungeon_master != request.user:
+        messages.error(request, "Only the Dungeon Master can update objectives.")
+        return redirect('quest_detail', pk=objective.quest.pk)
+
+    if request.method == 'POST':
+        objective.is_completed = not objective.is_completed
+        objective.save()
+        messages.success(request, "Objective status updated.")
+
+    return redirect('quest_detail', pk=objective.quest.pk)
+
+
 # Character views
 # ─────────────────────────────────────────────────────────────────────
 
@@ -377,16 +558,82 @@ def session_detail(request, pk):
     """
     session    = get_object_or_404(Session, pk=pk)
     encounters = Encounter.objects.filter(session=session)
+    session_quests = SessionQuest.objects.filter(session=session).select_related('quest').order_by('quest__name')
     is_dm      = session.campaign.dungeon_master == request.user
 
     return render(request, 'campaign_manager/session_detail.html', {
         'session':    session,
         'encounters': encounters,
+        'session_quests': session_quests,
         'is_dm':      is_dm,
     })
 
 
 # ─────────────────────────────────────────────────────────────────────
+@login_required
+def session_quest_create(request, session_pk):
+    """Logs quest progress for a session. Only the DM can do this."""
+    session = get_object_or_404(Session.objects.select_related('campaign'), pk=session_pk)
+
+    if session.campaign.dungeon_master != request.user:
+        messages.error(request, "Only the Dungeon Master can add quest progress.")
+        return redirect('session_detail', pk=session_pk)
+
+    if request.method == 'POST':
+        form = SessionQuestForm(request.POST, session=session)
+        if form.is_valid():
+            quest = form.cleaned_data['quest']
+            if SessionQuest.objects.filter(session=session, quest=quest).exists():
+                form.add_error('quest', 'That quest already has progress logged for this session.')
+            else:
+                session_quest = form.save(commit=False)
+                session_quest.session = session
+                session_quest.save()
+                messages.success(request, f'Quest progress for "{quest.name}" has been recorded.')
+                return redirect('session_detail', pk=session_pk)
+    else:
+        form = SessionQuestForm(session=session)
+
+    return render(request, 'campaign_manager/session_quest_form.html', {
+        'form': form,
+        'session': session,
+        'title': f'Add Quest Progress - Session #{session.session_number}',
+    })
+
+
+@login_required
+def session_quest_edit(request, pk):
+    """Edits quest progress notes for a session. Only the DM can do this."""
+    session_quest = get_object_or_404(
+        SessionQuest.objects.select_related('session', 'session__campaign', 'quest'),
+        pk=pk,
+    )
+
+    if session_quest.session.campaign.dungeon_master != request.user:
+        messages.error(request, "Only the Dungeon Master can edit quest progress.")
+        return redirect('session_detail', pk=session_quest.session.pk)
+
+    if request.method == 'POST':
+        form = SessionQuestForm(
+            request.POST,
+            instance=session_quest,
+            session=session_quest.session,
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Quest progress updated.")
+            return redirect('session_detail', pk=session_quest.session.pk)
+    else:
+        form = SessionQuestForm(instance=session_quest, session=session_quest.session)
+
+    return render(request, 'campaign_manager/session_quest_form.html', {
+        'form': form,
+        'session': session_quest.session,
+        'session_quest': session_quest,
+        'title': f'Edit Quest Progress - Session #{session_quest.session.session_number}',
+    })
+
+
 # Encounter views
 # ─────────────────────────────────────────────────────────────────────
 

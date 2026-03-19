@@ -34,6 +34,36 @@ urlpatterns = [
     # Join a campaign:            POST  /campaigns/5/join/
     path('campaigns/<int:pk>/join/', views.campaign_join, name='campaign_join'),
 
+    # Add an NPC to a campaign:   GET/POST  /campaigns/5/npcs/create/
+    path(
+        'campaigns/<int:campaign_pk>/npcs/create/',
+        views.npc_create,
+        name='npc_create',
+    ),
+
+    # Add a quest to a campaign:  GET/POST  /campaigns/5/quests/create/
+    path(
+        'campaigns/<int:campaign_pk>/quests/create/',
+        views.quest_create,
+        name='quest_create',
+    ),
+
+    # View a quest:               GET  /quests/3/
+    path('quests/<int:pk>/', views.quest_detail, name='quest_detail'),
+
+    # Edit a quest:               GET/POST  /quests/3/edit/
+    path('quests/<int:pk>/edit/', views.quest_edit, name='quest_edit'),
+
+    # Add an objective:           GET/POST  /quests/3/objectives/create/
+    path(
+        'quests/<int:quest_pk>/objectives/create/',
+        views.objective_create,
+        name='objective_create',
+    ),
+
+    # Toggle an objective:        POST  /objectives/7/toggle/
+    path('objectives/<int:pk>/toggle/', views.objective_toggle, name='objective_toggle'),
+
 
     # ── Sessions (nested under campaign) ───────────────────────────
     # Log a new session:          GET/POST  /campaigns/5/sessions/create/
@@ -45,6 +75,16 @@ urlpatterns = [
 
     # View session details:       GET  /sessions/3/
     path('sessions/<int:pk>/', views.session_detail, name='session_detail'),
+
+    # Add quest progress:         GET/POST  /sessions/3/quests/add/
+    path(
+        'sessions/<int:session_pk>/quests/add/',
+        views.session_quest_create,
+        name='session_quest_create',
+    ),
+
+    # Edit quest progress:        GET/POST  /session-quests/4/edit/
+    path('session-quests/<int:pk>/edit/', views.session_quest_edit, name='session_quest_edit'),
 
 
     # ── Encounters (nested under session) ──────────────────────────

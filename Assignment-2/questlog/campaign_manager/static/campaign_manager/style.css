@@ -546,6 +546,8 @@ select option {
 .badge-status-active    { background: rgba(45, 106, 79, 0.3);  color: var(--green-light); border: 1px solid var(--green); }
 .badge-status-completed { background: rgba(29, 53, 87, 0.5);   color: var(--blue-light);  border: 1px solid var(--blue-light); }
 .badge-status-on_hold   { background: rgba(123, 94, 0, 0.35);  color: var(--amber-light); border: 1px solid var(--amber); }
+.badge-status-not_started { background: rgba(45, 45, 90, 0.5); color: var(--text-muted); border: 1px solid var(--border); }
+.badge-status-failed    { background: rgba(155, 34, 38, 0.35); color: #ff8c89; border: 1px solid var(--red); }
 
 /* Campaign membership roles */
 .badge-dm     { background: rgba(201, 166, 107, 0.2); color: var(--gold);        border: 1px solid var(--gold-dark); }
@@ -563,6 +565,24 @@ select option {
 .badge-outcome-fled       { background: rgba(123, 94, 0, 0.35);  color: var(--amber-light); border: 1px solid var(--amber); }
 .badge-outcome-negotiated { background: rgba(29, 53, 87, 0.5);   color: var(--blue-light);  border: 1px solid var(--blue-light); }
 .badge-outcome-unresolved { background: rgba(45, 45, 90, 0.5);   color: var(--text-muted);  border: 1px solid var(--border); }
+
+.badge-quest-open {
+  background: rgba(123, 94, 0, 0.35);
+  color: var(--amber-light);
+  border: 1px solid var(--amber);
+}
+
+.badge-quest-completed {
+  background: rgba(45, 106, 79, 0.3);
+  color: var(--green-light);
+  border: 1px solid var(--green);
+}
+
+.badge-session-log {
+  background: rgba(29, 53, 87, 0.5);
+  color: var(--blue-light);
+  border: 1px solid var(--blue-light);
+}
 
 /* Item rarity */
 .badge-rarity-common    { color: #b0b0b0; border: 1px solid #555; background: rgba(80,80,80,0.2); }
@@ -852,12 +872,24 @@ select option {
   display: flex;
   gap: 0.4rem;
   flex-shrink: 0;
+  align-items: center;
 }
 
 .encounter-description {
   color: var(--text-muted);
   margin-bottom: 0;
   font-size: 0.95rem;
+}
+
+.encounter-badges form {
+  margin: 0;
+}
+
+.quest-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
 }
 
 /* ── Auth pages ── */

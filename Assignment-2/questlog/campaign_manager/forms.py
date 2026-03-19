@@ -13,7 +13,18 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Campaign, Character, Session, Encounter, Item, CharacterItem
+from .models import (
+    Campaign,
+    Character,
+    Session,
+    Encounter,
+    Item,
+    CharacterItem,
+    NPC,
+    Quest,
+    QuestObjective,
+    SessionQuest,
+)
 
 
 class RegistrationForm(UserCreationForm):
@@ -69,6 +80,44 @@ class SessionForm(forms.ModelForm):
         }
 
 
+class NPCForm(forms.ModelForm):
+    """Form for creating or editing an NPC within a campaign."""
+
+    class Meta:
+        model = NPC
+        fields = ['name', 'description', 'role']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+
+class QuestForm(forms.ModelForm):
+    """Form for creating or editing a quest within a campaign."""
+
+    class Meta:
+        model = Quest
+        fields = ['name', 'description', 'status', 'reward_gold', 'reward_xp', 'difficulty', 'given_by']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def __init__(self, *args, campaign=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if campaign is not None:
+            self.fields['given_by'].queryset = NPC.objects.filter(campaign=campaign).order_by('name')
+
+
+class QuestObjectiveForm(forms.ModelForm):
+    """Form for creating or editing a quest objective."""
+
+    class Meta:
+        model = QuestObjective
+        fields = ['description', 'is_completed']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
+
 class EncounterForm(forms.ModelForm):
     """Form for adding an encounter to a session."""
 
@@ -79,6 +128,24 @@ class EncounterForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }
+
+
+class SessionQuestForm(forms.ModelForm):
+    """Form for logging quest progress during a session."""
+
+    class Meta:
+        model = SessionQuest
+        fields = ['quest', 'progress_notes']
+        widgets = {
+            'progress_notes': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def __init__(self, *args, session=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if session is not None:
+            self.fields['quest'].queryset = Quest.objects.filter(
+                campaign=session.campaign
+            ).order_by('name')
 
 
 class ItemForm(forms.ModelForm):

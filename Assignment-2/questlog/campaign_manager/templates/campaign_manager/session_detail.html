@@ -1,10 +1,9 @@
 {% extends "campaign_manager/base.html" %}
 
-{% block title %}Session {{ session.session_number }} — {{ session.campaign.name }} — QuestLog{% endblock %}
+{% block title %}Session {{ session.session_number }} â€” {{ session.campaign.name }} â€” QuestLog{% endblock %}
 
 {% block content %}
 
-<!-- Header -->
 <div class="page-header">
   <div>
     <nav class="breadcrumb">
@@ -22,6 +21,9 @@
   </div>
   <div class="header-actions">
     {% if is_dm %}
+      <a href="{% url 'session_quest_create' session_pk=session.pk %}" class="btn btn-secondary">
+        + Add Quest Progress
+      </a>
       <a href="{% url 'encounter_create' session_pk=session.pk %}" class="btn btn-primary">
         + Add Encounter
       </a>
@@ -29,7 +31,6 @@
   </div>
 </div>
 
-<!-- Session Summary / Recap -->
 {% if session.summary %}
   <div class="card">
     <h2>Session Recap</h2>
@@ -39,8 +40,51 @@
   </div>
 {% endif %}
 
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Quest Progress</h2>
+    {% if is_dm %}
+      <a href="{% url 'session_quest_create' session_pk=session.pk %}" class="btn btn-secondary btn-sm">
+        + Add Quest Progress
+      </a>
+    {% endif %}
+  </div>
 
-<!-- ─── Encounters ────────────────────────────────────────────────── -->
+  {% if session_quests %}
+    <div class="encounter-list">
+      {% for session_quest in session_quests %}
+        <div class="card encounter-card">
+          <div class="encounter-header">
+            <h3><a href="{% url 'quest_detail' pk=session_quest.quest.pk %}">{{ session_quest.quest.name }}</a></h3>
+            <div class="encounter-badges">
+              <span class="badge badge-status-{{ session_quest.quest.status }}">
+                {{ session_quest.quest.get_status_display }}
+              </span>
+              {% if is_dm %}
+                <a href="{% url 'session_quest_edit' pk=session_quest.pk %}" class="btn btn-secondary btn-xs">Edit</a>
+              {% endif %}
+            </div>
+          </div>
+          {% if session_quest.progress_notes %}
+            <p class="encounter-description">{{ session_quest.progress_notes|linebreaksbr }}</p>
+          {% else %}
+            <p class="text-muted">No progress notes recorded.</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>No quest progress has been logged for this session.</p>
+      {% if is_dm %}
+        <a href="{% url 'session_quest_create' session_pk=session.pk %}" class="btn btn-secondary">
+          Log the first quest update
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+
 <section class="dashboard-section">
   <div class="section-header">
     <h2>Encounters</h2>
@@ -58,11 +102,9 @@
           <div class="encounter-header">
             <h3>{{ encounter.name }}</h3>
             <div class="encounter-badges">
-              <!-- Difficulty badge -->
               <span class="badge badge-difficulty-{{ encounter.difficulty }}">
                 {{ encounter.get_difficulty_display }}
               </span>
-              <!-- Outcome badge (or 'Unresolved' if null) -->
               {% if encounter.outcome %}
                 <span class="badge badge-outcome-{{ encounter.outcome }}">
                   {{ encounter.get_outcome_display }}
@@ -90,7 +132,6 @@
   {% endif %}
 </section>
 
-<!-- Back link -->
 <p style="margin-top: 2rem;">
   <a href="{% url 'campaign_detail' pk=session.campaign.pk %}" class="btn btn-secondary">
     &larr; Back to {{ session.campaign.name }}

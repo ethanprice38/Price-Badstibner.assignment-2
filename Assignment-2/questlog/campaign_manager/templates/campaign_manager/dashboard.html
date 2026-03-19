@@ -1,6 +1,6 @@
 {% extends "campaign_manager/base.html" %}
 
-{% block title %}Dashboard — QuestLog{% endblock %}
+{% block title %}Dashboard â€” QuestLog{% endblock %}
 
 {% block content %}
 
@@ -9,8 +9,6 @@
   <p class="page-subtitle">Your adventures at a glance.</p>
 </div>
 
-
-<!-- ─── Your Campaigns ─────────────────────────────────────────────── -->
 <section class="dashboard-section">
   <div class="section-header">
     <h2>Your Campaigns</h2>
@@ -23,13 +21,12 @@
         <a href="{% url 'campaign_detail' pk=campaign.pk %}" class="card card-link">
           <div class="card-header">
             <h3 class="card-title">{{ campaign.name }}</h3>
-            <!-- Status badge: colour is set via CSS class matching the status value -->
             <span class="badge badge-status-{{ campaign.status }}">
               {{ campaign.get_status_display }}
             </span>
           </div>
           <p class="card-meta">
-            {% if campaign.world_name %}🌍 {{ campaign.world_name }} &bull; {% endif %}
+            {% if campaign.world_name %}ðŸŒ {{ campaign.world_name }} &bull; {% endif %}
             DM: {{ campaign.dungeon_master.username }}
           </p>
           {% if campaign.description %}
@@ -46,8 +43,37 @@
   {% endif %}
 </section>
 
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Active Quests</h2>
+  </div>
 
-<!-- ─── Your Characters ────────────────────────────────────────────── -->
+  {% if active_quests %}
+    <div class="card-grid">
+      {% for quest in active_quests %}
+        <a href="{% url 'quest_detail' pk=quest.pk %}" class="card card-link">
+          <div class="card-header">
+            <h3 class="card-title">{{ quest.name }}</h3>
+            <span class="badge badge-status-{{ quest.status }}">{{ quest.get_status_display }}</span>
+          </div>
+          <p class="card-meta">{{ quest.campaign.name }} &bull; Given by {{ quest.given_by.name }}</p>
+          <p class="card-meta">
+            <span class="badge badge-difficulty-{{ quest.difficulty }}">{{ quest.get_difficulty_display }}</span>
+            &bull; {{ quest.reward_gold }} gp &bull; {{ quest.reward_xp }} XP
+          </p>
+          {% if quest.description %}
+            <p class="card-excerpt">{{ quest.description|truncatechars:110 }}</p>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>No active quests yet.</p>
+    </div>
+  {% endif %}
+</section>
+
 <section class="dashboard-section">
   <div class="section-header">
     <h2>Your Characters</h2>
@@ -75,8 +101,41 @@
   {% endif %}
 </section>
 
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Recent Quest Progress</h2>
+  </div>
 
-<!-- ─── Recent Sessions ────────────────────────────────────────────── -->
+  {% if recent_quest_progress %}
+    <div class="encounter-list">
+      {% for session_quest in recent_quest_progress %}
+        <div class="card encounter-card">
+          <div class="encounter-header">
+            <h3><a href="{% url 'quest_detail' pk=session_quest.quest.pk %}">{{ session_quest.quest.name }}</a></h3>
+            <div class="encounter-badges">
+              <span class="badge badge-status-{{ session_quest.quest.status }}">
+                {{ session_quest.quest.get_status_display }}
+              </span>
+            </div>
+          </div>
+          <p class="card-meta">
+            {{ session_quest.session.campaign.name }} &bull;
+            Session #{{ session_quest.session.session_number }} &bull;
+            {{ session_quest.session.date }}
+          </p>
+          {% if session_quest.progress_notes %}
+            <p class="encounter-description">{{ session_quest.progress_notes|truncatechars:150 }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>No quest progress has been logged yet.</p>
+    </div>
+  {% endif %}
+</section>
+
 <section class="dashboard-section">
   <div class="section-header">
     <h2>Recent Sessions</h2>
@@ -103,7 +162,7 @@
               {% if session.duration_hours %}
                 {{ session.duration_hours }}h
               {% else %}
-                —
+                â€”
               {% endif %}
             </td>
             <td>
