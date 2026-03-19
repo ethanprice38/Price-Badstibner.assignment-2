@@ -15,11 +15,12 @@ from django.contrib.auth.models import User
 from campaign_manager.models import (
     Campaign, CampaignPlayer, Character,
     Item, CharacterItem, Session, Encounter,
+    NPC, Quest, QuestObjective, SessionQuest,
 )
 
 
 class Command(BaseCommand):
-    help = 'Seeds the database with sample campaigns, characters, sessions, and items.'
+    help = 'Seeds the database with sample campaigns, characters, sessions, quests, and items.'
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.MIGRATE_HEADING('\n⚔  QuestLog — Seeding database...\n'))
@@ -413,6 +414,177 @@ class Command(BaseCommand):
             },
         )
 
+        # —— NPCs ——————————————————————————————————————————————————————————————
+        self.stdout.write('Creating NPCs...')
+
+        sildar, _ = NPC.objects.get_or_create(
+            campaign=campaign1,
+            name='Sildar Hallwinter',
+            defaults={
+                'description': (
+                    "A seasoned member of the Lords' Alliance and ally of Gundren Rockseeker. "
+                    "He was rescued from the Cragmaw goblins and now helps the party navigate "
+                    "the politics of Phandalin."
+                ),
+                'role': 'Quest Patron',
+            },
+        )
+
+        harbin, _ = NPC.objects.get_or_create(
+            campaign=campaign1,
+            name='Harbin Wester',
+            defaults={
+                'description': (
+                    "The anxious townmaster of Phandalin. He prefers to solve dangerous problems "
+                    "by paying adventurers to handle them at a safe distance."
+                ),
+                'role': 'Townmaster',
+            },
+        )
+
+        ismark, _ = NPC.objects.get_or_create(
+            campaign=campaign2,
+            name='Ismark Kolyanovich',
+            defaults={
+                'description': (
+                    "A determined noble of Barovia village trying to protect his sister Ireena "
+                    "from Strahd's influence and find allies strong enough to help."
+                ),
+                'role': 'Noble Ally',
+            },
+        )
+
+        madam_eva, _ = NPC.objects.get_or_create(
+            campaign=campaign2,
+            name='Madam Eva',
+            defaults={
+                'description': (
+                    "A mysterious Vistani seer whose tarokka readings reveal the paths to "
+                    "Barovia's relics and the party's fate."
+                ),
+                'role': 'Fortune Teller',
+            },
+        )
+
+        # —— Quests ————————————————————————————————————————————————————————————
+        self.stdout.write('Creating quests...')
+
+        find_gundren, _ = Quest.objects.get_or_create(
+            campaign=campaign1,
+            name='Find Gundren Rockseeker',
+            defaults={
+                'description': (
+                    "Track down Gundren Rockseeker after his kidnapping and learn what he knows "
+                    "about Wave Echo Cave."
+                ),
+                'status': 'active',
+                'reward_gold': 100,
+                'reward_xp': 300,
+                'difficulty': 'medium',
+                'given_by': sildar,
+            },
+        )
+
+        redbrand_menace, _ = Quest.objects.get_or_create(
+            campaign=campaign1,
+            name='Drive Out the Redbrands',
+            defaults={
+                'description': (
+                    "Investigate the Redbrand gang, locate their hideout beneath Tresendar Manor, "
+                    "and end their control over Phandalin."
+                ),
+                'status': 'completed',
+                'reward_gold': 150,
+                'reward_xp': 450,
+                'difficulty': 'hard',
+                'given_by': harbin,
+            },
+        )
+
+        protect_ireena, _ = Quest.objects.get_or_create(
+            campaign=campaign2,
+            name='Protect Ireena Kolyana',
+            defaults={
+                'description': (
+                    "Escort Ireena to safety and keep Strahd's agents from seizing her before "
+                    "she can leave Barovia village."
+                ),
+                'status': 'active',
+                'reward_gold': 75,
+                'reward_xp': 350,
+                'difficulty': 'hard',
+                'given_by': ismark,
+            },
+        )
+
+        card_reading, _ = Quest.objects.get_or_create(
+            campaign=campaign2,
+            name='Seek Madam Eva\'s Reading',
+            defaults={
+                'description': (
+                    "Find Madam Eva and receive a tarokka reading that reveals the relics, ally, "
+                    "and location tied to Strahd's downfall."
+                ),
+                'status': 'not_started',
+                'reward_gold': 0,
+                'reward_xp': 250,
+                'difficulty': 'medium',
+                'given_by': madam_eva,
+            },
+        )
+
+        # —— Quest objectives ——————————————————————————————————————————————————
+        self.stdout.write('Creating quest objectives...')
+
+        QuestObjective.objects.get_or_create(
+            quest=find_gundren,
+            description='Rescue Sildar Hallwinter from the Cragmaw Hideout.',
+            defaults={'is_completed': True},
+        )
+        QuestObjective.objects.get_or_create(
+            quest=find_gundren,
+            description='Learn where Gundren was taken after the goblin ambush.',
+            defaults={'is_completed': True},
+        )
+        QuestObjective.objects.get_or_create(
+            quest=find_gundren,
+            description='Track Gundren to Cragmaw Castle or another holding site.',
+            defaults={'is_completed': False},
+        )
+
+        QuestObjective.objects.get_or_create(
+            quest=redbrand_menace,
+            description='Identify the Redbrands\' base of operations in Phandalin.',
+            defaults={'is_completed': True},
+        )
+        QuestObjective.objects.get_or_create(
+            quest=redbrand_menace,
+            description='Defeat or capture Glasstaff and scatter the Redbrands.',
+            defaults={'is_completed': True},
+        )
+
+        QuestObjective.objects.get_or_create(
+            quest=protect_ireena,
+            description='Meet Ismark and learn why Ireena is in danger.',
+            defaults={'is_completed': True},
+        )
+        QuestObjective.objects.get_or_create(
+            quest=protect_ireena,
+            description='Convince Ireena to travel with the party to a safer settlement.',
+            defaults={'is_completed': False},
+        )
+
+        QuestObjective.objects.get_or_create(
+            quest=card_reading,
+            description='Locate the Vistani camp where Madam Eva can be found.',
+            defaults={'is_completed': False},
+        )
+        QuestObjective.objects.get_or_create(
+            quest=card_reading,
+            description='Receive a tarokka reading about the artifacts and ally.',
+            defaults={'is_completed': False},
+        )
+
         # ── Encounters ───────────────────────────────────────────────────
         self.stdout.write('Creating encounters...')
 
@@ -505,6 +677,50 @@ class Command(BaseCommand):
             },
         )
 
+        # —— Session quest progress (SessionQuest join table) ———————————————
+        self.stdout.write('Recording quest progress...')
+
+        SessionQuest.objects.get_or_create(
+            session=sess1c1,
+            quest=find_gundren,
+            defaults={
+                'progress_notes': (
+                    "The party discovered Gundren had been abducted, rescued Sildar Hallwinter, "
+                    "and learned the dwarf was taken toward Cragmaw territory."
+                ),
+            },
+        )
+        SessionQuest.objects.get_or_create(
+            session=sess2c1,
+            quest=redbrand_menace,
+            defaults={
+                'progress_notes': (
+                    "After arriving in Phandalin, the party gathered intelligence on the Redbrands "
+                    "and located the hideout beneath Tresendar Manor."
+                ),
+            },
+        )
+        SessionQuest.objects.get_or_create(
+            session=sess3c1,
+            quest=redbrand_menace,
+            defaults={
+                'progress_notes': (
+                    "The group cleared the hideout, defeated multiple threats inside, and captured "
+                    "Glasstaff, effectively ending the Redbrands' local power."
+                ),
+            },
+        )
+        SessionQuest.objects.get_or_create(
+            session=sess1c2,
+            quest=protect_ireena,
+            defaults={
+                'progress_notes': (
+                    "The party entered Barovia, encountered the village's despair, and began learning "
+                    "about the danger surrounding Ireena and Strahd's interest in her."
+                ),
+            },
+        )
+
         # ── Summary ──────────────────────────────────────────────────────
         self.stdout.write('\n' + '─' * 60)
         self.stdout.write(self.style.SUCCESS('✔  Seeding complete!\n'))
@@ -523,6 +739,10 @@ class Command(BaseCommand):
         self.stdout.write(f'  Characters:     {Character.objects.count()}')
         self.stdout.write(f'  Sessions:       {Session.objects.count()}')
         self.stdout.write(f'  Encounters:     {Encounter.objects.count()}')
+        self.stdout.write(f'  NPCs:           {NPC.objects.count()}')
+        self.stdout.write(f'  Quests:         {Quest.objects.count()}')
+        self.stdout.write(f'  Objectives:     {QuestObjective.objects.count()}')
+        self.stdout.write(f'  SessionQuests:  {SessionQuest.objects.count()}')
         self.stdout.write(f'  Items:          {Item.objects.count()}')
         self.stdout.write(f'  Inventory rows: {CharacterItem.objects.count()}')
         self.stdout.write('')

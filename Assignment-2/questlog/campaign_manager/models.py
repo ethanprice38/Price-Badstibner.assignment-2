@@ -196,10 +196,76 @@ class Item(models.Model):
     class Meta:
         ordering = ['name']
 
+class NPC(models.Model):
+    """
+    A non-player character that belongs to a specific campaign.
+    NPCs can act as quest givers for quests in that same campaign.
+    """
 
-# ─────────────────────────────────────────────────────────────────────
-# CharacterItem  (join table: Character ↔ Item)
-# ─────────────────────────────────────────────────────────────────────
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    role = models.CharField(max_length=100)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='npcs')
+
+    def __str__(self):
+        return f"{self.name} ({self.role})"
+
+    class Meta:
+        ordering = ['campaign', 'name']
+
+
+class Quest(models.Model):
+    """
+    A quest tracked within a campaign.
+    Each quest belongs to one campaign and is given by one NPC.
+    """
+
+    STATUS_CHOICES = [
+        ('not_started', 'Not Started'),
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard'),
+        ('epic', 'Epic'),
+    ]
+
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
+    reward_gold = models.IntegerField(default=0)
+    reward_xp = models.IntegerField(default=0)
+    difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='medium')
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='quests')
+    given_by = models.ForeignKey(NPC, on_delete=models.CASCADE, related_name='quests_given')
+
+    def __str__(self):
+        return f"{self.name} [{self.get_status_display()}]"
+
+    class Meta:
+        ordering = ['campaign', 'name']
+
+
+class QuestObjective(models.Model):
+    """
+    A single objective belonging to a quest.
+    """
+
+    description = models.TextField()
+    is_completed = models.BooleanField(default=False)
+    quest = models.ForeignKey(Quest, on_delete=models.CASCADE, related_name='objectives')
+
+    def __str__(self):
+        status = 'done' if self.is_completed else 'open'
+        return f"{self.quest.name}: {status}"
+
+    class Meta:
+        ordering = ['quest', 'id']
+
 
 class CharacterItem(models.Model):
     """
@@ -262,9 +328,24 @@ class Session(models.Model):
         unique_together     = ('campaign', 'session_number')  # No duplicate session numbers per campaign
 
 
-# ─────────────────────────────────────────────────────────────────────
-# Encounter
-# ─────────────────────────────────────────────────────────────────────
+class SessionQuest(models.Model):
+    """
+    Records quest progress made during a specific session.
+
+    This explicit join table supports the many-to-many relationship where
+    one session can advance multiple quests and one quest can span many sessions.
+    """
+
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='session_quests')
+    quest = models.ForeignKey(Quest, on_delete=models.CASCADE, related_name='session_logs')
+    progress_notes = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('session', 'quest')
+
+    def __str__(self):
+        return f"Session {self.session.session_number} -> {self.quest.name}"
+
 
 class Encounter(models.Model):
     """

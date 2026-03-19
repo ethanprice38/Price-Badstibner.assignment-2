@@ -13,7 +13,19 @@ To access /admin/, you need a superuser account:
 """
 
 from django.contrib import admin
-from .models import Campaign, CampaignPlayer, Character, Session, Encounter, Item, CharacterItem
+from .models import (
+    Campaign,
+    CampaignPlayer,
+    Character,
+    Session,
+    Encounter,
+    Item,
+    CharacterItem,
+    NPC,
+    Quest,
+    QuestObjective,
+    SessionQuest,
+)
 
 
 @admin.register(Campaign)
@@ -64,3 +76,31 @@ class CharacterItemAdmin(admin.ModelAdmin):
     list_display  = ['character', 'item', 'quantity', 'equipped']
     list_filter   = ['equipped']
     search_fields = ['character__name', 'item__name']
+
+
+@admin.register(NPC)
+class NPCAdmin(admin.ModelAdmin):
+    list_display = ['name', 'campaign', 'role']
+    list_filter = ['campaign']
+    search_fields = ['name', 'role', 'campaign__name']
+
+
+@admin.register(Quest)
+class QuestAdmin(admin.ModelAdmin):
+    list_display = ['name', 'campaign', 'given_by', 'status', 'difficulty', 'reward_gold', 'reward_xp']
+    list_filter = ['campaign', 'status', 'difficulty']
+    search_fields = ['name', 'campaign__name', 'given_by__name']
+
+
+@admin.register(QuestObjective)
+class QuestObjectiveAdmin(admin.ModelAdmin):
+    list_display = ['quest', 'is_completed']
+    list_filter = ['is_completed']
+    search_fields = ['quest__name', 'description']
+
+
+@admin.register(SessionQuest)
+class SessionQuestAdmin(admin.ModelAdmin):
+    list_display = ['session', 'quest']
+    list_filter = ['session__campaign']
+    search_fields = ['quest__name', 'session__campaign__name']
