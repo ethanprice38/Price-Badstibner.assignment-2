@@ -1,0 +1,57 @@
+{% extends "campaign_manager/base.html" %}
+
+{% block title %}{{ title }} — QuestLog{% endblock %}
+
+{% block content %}
+
+<div class="form-page">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    {% if campaign %}
+      <a href="{% url 'campaign_detail' pk=campaign.pk %}">{{ campaign.name }}</a>
+      &rsaquo; New Character
+    {% elif character %}
+      <a href="{% url 'campaign_detail' pk=character.campaign.pk %}">{{ character.campaign.name }}</a>
+      &rsaquo; <a href="{% url 'character_detail' pk=character.pk %}">{{ character.name }}</a>
+      &rsaquo; Edit
+    {% endif %}
+  </nav>
+
+  <h1>{{ title }}</h1>
+
+  <div class="card form-card">
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="message message-error">
+          Please correct the errors highlighted below.
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <p class="field-error">{{ field.errors|join:", " }}</p>
+          {% endif %}
+          {% if field.help_text %}
+            <p class="field-help">{{ field.help_text }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Character</button>
+        {% if character %}
+          <a href="{% url 'character_detail' pk=character.pk %}" class="btn btn-secondary">Cancel</a>
+        {% elif campaign %}
+          <a href="{% url 'campaign_detail' pk=campaign.pk %}" class="btn btn-secondary">Cancel</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

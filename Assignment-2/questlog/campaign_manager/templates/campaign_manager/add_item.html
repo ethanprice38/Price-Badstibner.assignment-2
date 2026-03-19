@@ -1,0 +1,107 @@
+{% extends "campaign_manager/base.html" %}
+
+{% block title %}Add Item — {{ character.name }} — QuestLog{% endblock %}
+
+{% block content %}
+
+<div class="form-page">
+  <nav class="breadcrumb">
+    <a href="{% url 'campaign_detail' pk=character.campaign.pk %}">{{ character.campaign.name }}</a>
+    &rsaquo; <a href="{% url 'character_detail' pk=character.pk %}">{{ character.name }}</a>
+    &rsaquo; Add Item
+  </nav>
+
+  <h1>Add Item to {{ character.name }}'s Inventory</h1>
+
+  <!--
+    This page demonstrates working with the CharacterItem JOIN TABLE.
+    We show two separate forms so you can see both paths clearly:
+      1. Pick an item that already exists in the Item table → creates a CharacterItem row
+      2. Create a brand-new Item → saves to Item table, then creates a CharacterItem row
+
+    The hidden 'form_type' field tells the view which form was submitted.
+  -->
+
+  <div class="add-item-container">
+
+    <!-- ─── Form 1: Add an existing item ──────────────────────────── -->
+    <div class="card form-card">
+      <h2>Add an Existing Item</h2>
+      <p class="text-muted">Pick from items that already exist in the world.</p>
+
+      <form method="post">
+        {% csrf_token %}
+        <!-- Tells the view this is the "pick from existing" form -->
+        <input type="hidden" name="form_type" value="existing">
+
+        {% for field in existing_form %}
+          <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <p class="field-error">{{ field.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Add to Inventory</button>
+        </div>
+      </form>
+    </div>
+
+
+    <!-- ─── Form 2: Create a new item ─────────────────────────────── -->
+    <div class="card form-card">
+      <h2>Create a New Item</h2>
+      <p class="text-muted">
+        Define a brand-new item. It will be saved to the Items table and then
+        added to {{ character.name }}'s inventory.
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <!-- Tells the view this is the "create new item" form -->
+        <input type="hidden" name="form_type" value="new">
+
+        {% for field in new_item_form %}
+          <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <p class="field-error">{{ field.errors|join:", " }}</p>
+            {% endif %}
+            {% if field.help_text %}
+              <p class="field-help">{{ field.help_text }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <!-- Quantity and equipped fields (not part of ItemForm, added manually) -->
+        <div class="form-group">
+          <label for="new-quantity">Quantity</label>
+          <input type="number" name="quantity" id="new-quantity" value="1" min="1">
+        </div>
+        <div class="form-group form-group-checkbox">
+          <label>
+            <input type="checkbox" name="equipped">
+            Equipped
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Create &amp; Add Item</button>
+        </div>
+      </form>
+    </div>
+
+  </div><!-- end .add-item-container -->
+
+  <p style="margin-top: 1.5rem;">
+    <a href="{% url 'character_detail' pk=character.pk %}" class="btn btn-secondary">
+      &larr; Back to {{ character.name }}
+    </a>
+  </p>
+</div>
+
+{% endblock %}

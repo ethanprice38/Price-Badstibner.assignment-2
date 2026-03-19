@@ -1,0 +1,123 @@
+{% extends "campaign_manager/base.html" %}
+
+{% block title %}Dashboard — QuestLog{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>Welcome back, {{ user.username }}.</h1>
+  <p class="page-subtitle">Your adventures at a glance.</p>
+</div>
+
+
+<!-- ─── Your Campaigns ─────────────────────────────────────────────── -->
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Your Campaigns</h2>
+    <a href="{% url 'campaign_create' %}" class="btn btn-primary btn-sm">+ New Campaign</a>
+  </div>
+
+  {% if campaigns %}
+    <div class="card-grid">
+      {% for campaign in campaigns %}
+        <a href="{% url 'campaign_detail' pk=campaign.pk %}" class="card card-link">
+          <div class="card-header">
+            <h3 class="card-title">{{ campaign.name }}</h3>
+            <!-- Status badge: colour is set via CSS class matching the status value -->
+            <span class="badge badge-status-{{ campaign.status }}">
+              {{ campaign.get_status_display }}
+            </span>
+          </div>
+          <p class="card-meta">
+            {% if campaign.world_name %}🌍 {{ campaign.world_name }} &bull; {% endif %}
+            DM: {{ campaign.dungeon_master.username }}
+          </p>
+          {% if campaign.description %}
+            <p class="card-excerpt">{{ campaign.description|truncatechars:100 }}</p>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>You haven't joined any campaigns yet.</p>
+      <a href="{% url 'campaign_list' %}" class="btn btn-secondary">Browse Campaigns</a>
+    </div>
+  {% endif %}
+</section>
+
+
+<!-- ─── Your Characters ────────────────────────────────────────────── -->
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Your Characters</h2>
+  </div>
+
+  {% if characters %}
+    <div class="card-grid">
+      {% for character in characters %}
+        <a href="{% url 'character_detail' pk=character.pk %}" class="card card-link card-character">
+          <h3 class="card-title">{{ character.name }}</h3>
+          <p class="card-meta">
+            Level {{ character.level }}
+            {{ character.get_race_display }}
+            {{ character.get_character_class_display }}
+          </p>
+          <p class="card-meta">Campaign: {{ character.campaign.name }}</p>
+          <p class="card-meta">HP: <strong>{{ character.hit_points }}</strong></p>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>You don't have any characters yet. Join a campaign to create one!</p>
+    </div>
+  {% endif %}
+</section>
+
+
+<!-- ─── Recent Sessions ────────────────────────────────────────────── -->
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Recent Sessions</h2>
+  </div>
+
+  {% if recent_sessions %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Campaign</th>
+          <th>Date</th>
+          <th>Duration</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for session in recent_sessions %}
+          <tr>
+            <td>{{ session.session_number }}</td>
+            <td>{{ session.campaign.name }}</td>
+            <td>{{ session.date }}</td>
+            <td>
+              {% if session.duration_hours %}
+                {{ session.duration_hours }}h
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'session_detail' pk=session.pk %}" class="btn btn-secondary btn-xs">View</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty-state">
+      <p>No sessions recorded yet.</p>
+    </div>
+  {% endif %}
+</section>
+
+{% endblock %}

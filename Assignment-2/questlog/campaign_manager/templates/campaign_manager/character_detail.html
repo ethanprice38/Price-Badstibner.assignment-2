@@ -1,0 +1,148 @@
+{% extends "campaign_manager/base.html" %}
+
+{% block title %}{{ character.name }} — QuestLog{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="page-header">
+  <div>
+    <nav class="breadcrumb">
+      <a href="{% url 'campaign_detail' pk=character.campaign.pk %}">{{ character.campaign.name }}</a>
+      &rsaquo; {{ character.name }}
+    </nav>
+    <h1>{{ character.name }}</h1>
+    <p class="page-subtitle">
+      Level {{ character.level }}
+      {{ character.get_race_display }}
+      {{ character.get_character_class_display }}
+      &bull; Player: {{ character.player.username }}
+    </p>
+  </div>
+  <div class="header-actions">
+    {% if is_owner or is_dm %}
+      <a href="{% url 'character_edit' pk=character.pk %}" class="btn btn-secondary">Edit</a>
+      <a href="{% url 'add_item_to_character' character_pk=character.pk %}" class="btn btn-primary">
+        + Add Item
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+
+<!-- ─── Stat Block ────────────────────────────────────────────────── -->
+<div class="card stat-block">
+  <h2>Character Stats</h2>
+  <div class="stat-grid">
+    <div class="stat">
+      <span class="stat-label">Race</span>
+      <span class="stat-value">{{ character.get_race_display }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Class</span>
+      <span class="stat-value">{{ character.get_character_class_display }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Level</span>
+      <span class="stat-value stat-number">{{ character.level }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Hit Points</span>
+      <span class="stat-value stat-number hp">{{ character.hit_points }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Campaign</span>
+      <span class="stat-value">
+        <a href="{% url 'campaign_detail' pk=character.campaign.pk %}">
+          {{ character.campaign.name }}
+        </a>
+      </span>
+    </div>
+  </div>
+
+  {% if character.background_story %}
+    <div class="background-story">
+      <h3>Background</h3>
+      <p>{{ character.background_story }}</p>
+    </div>
+  {% endif %}
+</div>
+
+
+<!-- ─── Inventory ─────────────────────────────────────────────────── -->
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Inventory</h2>
+    {% if is_owner or is_dm %}
+      <a href="{% url 'add_item_to_character' character_pk=character.pk %}" class="btn btn-primary btn-sm">
+        + Add Item
+      </a>
+    {% endif %}
+  </div>
+
+  {% if inventory %}
+    <!--
+      This table shows data from CharacterItem — the join table between
+      Character and Item. Each row is one CharacterItem record, which has:
+        - item (via FK)  →  name, type, rarity, value
+        - quantity       →  how many the character carries
+        - equipped       →  is it currently worn/held?
+    -->
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Type</th>
+          <th>Rarity</th>
+          <th>Qty</th>
+          <th>Value</th>
+          <th>Equipped</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in inventory %}
+          <tr {% if entry.equipped %}class="row-equipped"{% endif %}>
+            <td>
+              <strong>{{ entry.item.name }}</strong>
+              {% if entry.item.description %}
+                <br><small class="text-muted">{{ entry.item.description|truncatechars:60 }}</small>
+              {% endif %}
+            </td>
+            <td>{{ entry.item.get_item_type_display }}</td>
+            <td>
+              <span class="badge badge-rarity-{{ entry.item.rarity }}">
+                {{ entry.item.get_rarity_display }}
+              </span>
+            </td>
+            <td>{{ entry.quantity }}</td>
+            <td>
+              {% if entry.item.value_gold %}
+                {{ entry.item.value_gold }} gp
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if entry.equipped %}
+                <span class="equipped-icon" title="Equipped">✔</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty-state">
+      <p>{{ character.name }} is carrying nothing. A true minimalist.</p>
+      {% if is_owner or is_dm %}
+        <a href="{% url 'add_item_to_character' character_pk=character.pk %}" class="btn btn-secondary">
+          Add an item
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+
+{% endblock %}

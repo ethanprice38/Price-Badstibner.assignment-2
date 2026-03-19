@@ -1,0 +1,47 @@
+{% extends "campaign_manager/base.html" %}
+
+{% block title %}{{ title }} — QuestLog{% endblock %}
+
+{% block content %}
+
+<div class="form-page">
+  <nav class="breadcrumb">
+    <a href="{% url 'campaign_detail' pk=session.campaign.pk %}">{{ session.campaign.name }}</a>
+    &rsaquo; <a href="{% url 'session_detail' pk=session.pk %}">Session #{{ session.session_number }}</a>
+    &rsaquo; Add Encounter
+  </nav>
+
+  <h1>{{ title }}</h1>
+
+  <div class="card form-card">
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="message message-error">
+          Please correct the errors highlighted below.
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <p class="field-error">{{ field.errors|join:", " }}</p>
+          {% endif %}
+          {% if field.help_text %}
+            <p class="field-help">{{ field.help_text }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Encounter</button>
+        <a href="{% url 'session_detail' pk=session.pk %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "campaign_manager/base.html" %}
+
+{% block title %}Session {{ session.session_number }} — {{ session.campaign.name }} — QuestLog{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="page-header">
+  <div>
+    <nav class="breadcrumb">
+      <a href="{% url 'campaign_detail' pk=session.campaign.pk %}">{{ session.campaign.name }}</a>
+      &rsaquo; Session #{{ session.session_number }}
+    </nav>
+    <h1>Session #{{ session.session_number }}</h1>
+    <p class="page-subtitle">
+      {{ session.campaign.name }}
+      &bull; {{ session.date }}
+      {% if session.duration_hours %}
+        &bull; {{ session.duration_hours }} hours
+      {% endif %}
+    </p>
+  </div>
+  <div class="header-actions">
+    {% if is_dm %}
+      <a href="{% url 'encounter_create' session_pk=session.pk %}" class="btn btn-primary">
+        + Add Encounter
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Session Summary / Recap -->
+{% if session.summary %}
+  <div class="card">
+    <h2>Session Recap</h2>
+    <div class="session-summary">
+      {{ session.summary|linebreaks }}
+    </div>
+  </div>
+{% endif %}
+
+
+<!-- ─── Encounters ────────────────────────────────────────────────── -->
+<section class="dashboard-section">
+  <div class="section-header">
+    <h2>Encounters</h2>
+    {% if is_dm %}
+      <a href="{% url 'encounter_create' session_pk=session.pk %}" class="btn btn-primary btn-sm">
+        + Add Encounter
+      </a>
+    {% endif %}
+  </div>
+
+  {% if encounters %}
+    <div class="encounter-list">
+      {% for encounter in encounters %}
+        <div class="card encounter-card">
+          <div class="encounter-header">
+            <h3>{{ encounter.name }}</h3>
+            <div class="encounter-badges">
+              <!-- Difficulty badge -->
+              <span class="badge badge-difficulty-{{ encounter.difficulty }}">
+                {{ encounter.get_difficulty_display }}
+              </span>
+              <!-- Outcome badge (or 'Unresolved' if null) -->
+              {% if encounter.outcome %}
+                <span class="badge badge-outcome-{{ encounter.outcome }}">
+                  {{ encounter.get_outcome_display }}
+                </span>
+              {% else %}
+                <span class="badge badge-outcome-unresolved">Unresolved</span>
+              {% endif %}
+            </div>
+          </div>
+          {% if encounter.description %}
+            <p class="encounter-description">{{ encounter.description }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>No encounters recorded for this session.</p>
+      {% if is_dm %}
+        <a href="{% url 'encounter_create' session_pk=session.pk %}" class="btn btn-secondary">
+          Add the first encounter
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+
+<!-- Back link -->
+<p style="margin-top: 2rem;">
+  <a href="{% url 'campaign_detail' pk=session.campaign.pk %}" class="btn btn-secondary">
+    &larr; Back to {{ session.campaign.name }}
+  </a>
+</p>
+
+{% endblock %}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+  base.html — The parent template for all QuestLog pages.
+
+  How Django template inheritance works:
+    1. This file defines the overall page structure (HTML shell, nav, footer).
+    2. Child templates declare: extends "campaign_manager/base.html"
+    3. Child templates fill in the 'content' block with their own HTML.
+    4. Anything outside of blocks in a child template is ignored.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}QuestLog{% endblock %}</title>
+
+  <!-- Google Fonts: Cinzel for headings (fantasy feel), Crimson Text for body (readable) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- Our app's stylesheet -->
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'campaign_manager/style.css' %}">
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       Navigation bar
+       ═══════════════════════════════════════════════════════════════ -->
+  <nav class="navbar">
+    <div class="nav-container">
+
+      <!-- Site logo / home link -->
+      <a href="{% url 'dashboard' %}" class="nav-brand">⚔ QuestLog</a>
+
+      <!-- Navigation links -->
+      <ul class="nav-links">
+        {% if user.is_authenticated %}
+          <!-- Logged-in navigation -->
+          <li><a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a></li>
+          <li><a href="{% url 'campaign_list' %}" class="nav-link">Campaigns</a></li>
+          <li><a href="{% url 'campaign_create' %}" class="nav-link">+ New Campaign</a></li>
+          <li class="nav-user">
+            Logged in as <strong>{{ user.username }}</strong>
+          </li>
+          <!-- Logout is a POST request for security; we use a tiny form -->
+          <li>
+            <form method="post" action="{% url 'logout' %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="nav-link nav-link-btn">Log Out</button>
+            </form>
+          </li>
+        {% else %}
+          <!-- Not logged in -->
+          <li><a href="{% url 'login' %}" class="nav-link">Log In</a></li>
+          <li><a href="{% url 'register' %}" class="nav-link btn-primary-small">Register</a></li>
+        {% endif %}
+      </ul>
+
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       Flash messages
+       Django's messages framework lets views send one-time notifications
+       (success, error, warning, info) that appear here and are cleared
+       after being displayed once.
+       ═══════════════════════════════════════════════════════════════ -->
+  {% if messages %}
+    <div class="messages-container">
+      {% for message in messages %}
+        <div class="message message-{{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       Main content
+       Child templates put their content inside this block.
+       ═══════════════════════════════════════════════════════════════ -->
+  <main class="main-content">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       Footer
+       ═══════════════════════════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <p>QuestLog &mdash; A Tabletop RPG Campaign Manager &mdash; CMSC424 Database Design</p>
+  </footer>
+
+</body>
+</html>

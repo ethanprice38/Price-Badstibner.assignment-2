@@ -1,0 +1,41 @@
+{% extends "campaign_manager/base.html" %}
+
+{% block title %}Register — QuestLog{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <h1 class="auth-title">⚔ QuestLog</h1>
+    <h2 class="auth-subtitle">Create Your Account</h2>
+
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="message message-error">
+          Please correct the errors below.
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <p class="field-error">{{ field.errors|join:", " }}</p>
+          {% endif %}
+          {% if field.help_text %}
+            <p class="field-help">{{ field.help_text }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+    </form>
+
+    <p class="auth-link">
+      Already have an account? <a href="{% url 'login' %}">Log in here</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "campaign_manager/base.html" %}
+
+{% block title %}Campaigns — QuestLog{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>All Campaigns</h1>
+  <a href="{% url 'campaign_create' %}" class="btn btn-primary">+ New Campaign</a>
+</div>
+
+<!-- Status filter tabs -->
+<div class="filter-tabs">
+  <a href="{% url 'campaign_list' %}"
+     class="filter-tab {% if not status_filter %}filter-tab-active{% endif %}">
+    All
+  </a>
+  <a href="{% url 'campaign_list' %}?status=active"
+     class="filter-tab {% if status_filter == 'active' %}filter-tab-active{% endif %}">
+    Active
+  </a>
+  <a href="{% url 'campaign_list' %}?status=on_hold"
+     class="filter-tab {% if status_filter == 'on_hold' %}filter-tab-active{% endif %}">
+    On Hold
+  </a>
+  <a href="{% url 'campaign_list' %}?status=completed"
+     class="filter-tab {% if status_filter == 'completed' %}filter-tab-active{% endif %}">
+    Completed
+  </a>
+</div>
+
+{% if campaigns %}
+  <div class="campaign-list">
+    {% for campaign in campaigns %}
+      <div class="card campaign-row">
+        <div class="campaign-row-main">
+          <div>
+            <h3 class="card-title">
+              <a href="{% url 'campaign_detail' pk=campaign.pk %}">{{ campaign.name }}</a>
+            </h3>
+            <p class="card-meta">
+              {% if campaign.world_name %}🌍 {{ campaign.world_name }} &bull; {% endif %}
+              DM: {{ campaign.dungeon_master.username }} &bull;
+              Started {{ campaign.created_at|date:"M j, Y" }}
+            </p>
+            {% if campaign.description %}
+              <p class="card-excerpt">{{ campaign.description|truncatechars:150 }}</p>
+            {% endif %}
+          </div>
+          <div class="campaign-row-actions">
+            <span class="badge badge-status-{{ campaign.status }}">
+              {{ campaign.get_status_display }}
+            </span>
+
+            {% if campaign.pk in user_campaign_ids %}
+              <!-- User is already a member — show a View button -->
+              <a href="{% url 'campaign_detail' pk=campaign.pk %}" class="btn btn-secondary btn-sm">
+                View
+              </a>
+            {% else %}
+              <!-- User is not a member — offer to Join -->
+              <form method="post" action="{% url 'campaign_join' pk=campaign.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-sm">Join</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <p>No campaigns found{% if status_filter %} with status "{{ status_filter }}"{% endif %}.</p>
+    <a href="{% url 'campaign_create' %}" class="btn btn-primary">Create the first one!</a>
+  </div>
+{% endif %}
+
+{% endblock %}

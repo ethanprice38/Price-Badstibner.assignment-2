@@ -1,0 +1,940 @@
+/*
+ * QuestLog Stylesheet
+ * Dark fantasy theme inspired by tabletop RPG aesthetics.
+ *
+ * Structure:
+ *   1. CSS Variables (design tokens)
+ *   2. Reset & Base
+ *   3. Typography
+ *   4. Layout (navbar, container, main, footer)
+ *   5. Buttons
+ *   6. Forms
+ *   7. Cards & Grids
+ *   8. Tables
+ *   9. Badges
+ *  10. Flash Messages
+ *  11. Page-specific components
+ */
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   1. CSS Variables
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  /* Backgrounds */
+  --bg-page:    #0d0d1a;   /* Darkest — page background */
+  --bg-nav:     #08080f;   /* Slightly darker for navbar */
+  --bg-card:    #1a1a35;   /* Cards and form panels */
+  --bg-input:   #111128;   /* Form inputs */
+  --bg-hover:   #22223f;   /* Hover state for cards/rows */
+
+  /* Accent — warm gold, like candlelight or treasure */
+  --gold:       #c9a66b;
+  --gold-light: #e8c78a;
+  --gold-dark:  #a07840;
+
+  /* Text */
+  --text:       #e8e6e0;   /* Primary text */
+  --text-muted: #8a8a9a;   /* Secondary / metadata */
+
+  /* Borders */
+  --border:     #2d2d5a;
+  --border-gold: rgba(201, 166, 107, 0.35);
+
+  /* Semantic colours */
+  --green:  #2d6a4f;
+  --green-light: #52b788;
+  --red:    #9b2226;
+  --red-light: #e63946;
+  --amber:  #7b5e00;
+  --amber-light: #f4a261;
+  --blue:   #1d3557;
+  --blue-light: #457b9d;
+  --purple: #4a1d5c;
+  --purple-light: #9d4edd;
+
+  /* Spacing */
+  --radius: 6px;
+  --radius-lg: 12px;
+
+  /* Shadows */
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 0 20px rgba(201, 166, 107, 0.15);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   2. Reset & Base
+   ═══════════════════════════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text);
+  font-family: 'Crimson Text', Georgia, 'Times New Roman', serif;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: var(--gold);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--gold-light);
+  text-decoration: underline;
+}
+
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   3. Typography
+   ═══════════════════════════════════════════════════════════════════ */
+h1, h2, h3, h4 {
+  font-family: 'Cinzel', 'Palatino Linotype', serif;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+}
+
+h1 { font-size: 2rem;   margin-bottom: 0.5rem; }
+h2 { font-size: 1.45rem; margin-bottom: 0.75rem; }
+h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+h4 { font-size: 1rem; }
+
+p {
+  margin-bottom: 0.75rem;
+}
+
+strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   4. Layout
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Navbar ── */
+.navbar {
+  background-color: var(--bg-nav);
+  border-bottom: 1px solid var(--border-gold);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.6);
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.nav-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  text-decoration: none;
+}
+
+.nav-brand:hover {
+  color: var(--gold-light);
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nav-link {
+  color: var(--text-muted);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  transition: color 0.2s, background 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--gold);
+  background: rgba(201, 166, 107, 0.08);
+  text-decoration: none;
+}
+
+/* Logout is a button styled as a link */
+.nav-link-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.nav-user {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 0 0.75rem;
+  border-left: 1px solid var(--border);
+  margin-left: 0.25rem;
+}
+
+.btn-primary-small {
+  background: var(--gold);
+  color: #0d0d1a !important;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.btn-primary-small:hover {
+  background: var(--gold-light);
+  text-decoration: none;
+}
+
+/* ── Container & main ── */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem 0 3rem;
+}
+
+/* ── Footer ── */
+.site-footer {
+  background: var(--bg-nav);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: 1rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   5. Buttons
+   ═══════════════════════════════════════════════════════════════════ */
+.btn {
+  display: inline-block;
+  padding: 0.55rem 1.25rem;
+  border-radius: var(--radius);
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  text-align: center;
+  text-decoration: none;
+}
+
+.btn:hover {
+  text-decoration: none;
+}
+
+/* Gold / primary action */
+.btn-primary {
+  background: var(--gold);
+  color: #0d0d1a;
+}
+
+.btn-primary:hover {
+  background: var(--gold-light);
+  color: #0d0d1a;
+  box-shadow: 0 0 16px rgba(201, 166, 107, 0.4);
+}
+
+/* Outlined / secondary action */
+.btn-secondary {
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold-dark);
+}
+
+.btn-secondary:hover {
+  background: rgba(201, 166, 107, 0.1);
+  border-color: var(--gold);
+  color: var(--gold-light);
+}
+
+/* Size variants */
+.btn-sm  { padding: 0.35rem 0.85rem; font-size: 0.8rem; }
+.btn-xs  { padding: 0.2rem 0.6rem;  font-size: 0.75rem; }
+.btn-full { display: block; width: 100%; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   6. Forms
+   ═══════════════════════════════════════════════════════════════════ */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group textarea,
+.form-group select,
+/* Also target Django's generated inputs (they don't always get the form-group wrapper) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+  width: 100%;
+  background: var(--bg-input);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.85rem;
+  font-family: 'Crimson Text', serif;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--gold-dark);
+  box-shadow: 0 0 0 3px rgba(201, 166, 107, 0.15);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+  accent-color: var(--gold);
+}
+
+.form-group-checkbox label {
+  display: flex;
+  align-items: center;
+  font-family: 'Crimson Text', serif;
+  font-size: 1rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* Django auto-generates select options — style the option color */
+select option {
+  background: var(--bg-card);
+  color: var(--text);
+}
+
+.field-error {
+  color: var(--red-light);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.field-help {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Form page layout */
+.form-page {
+  max-width: 720px;
+}
+
+.form-card {
+  margin-top: 1.5rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   7. Cards & Grids
+   ═══════════════════════════════════════════════════════════════════ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+/* Clickable card */
+.card-link {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.card-link:hover {
+  border-color: var(--gold-dark);
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-2px);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.card-compact {
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-title {
+  margin-bottom: 0;
+  font-size: 1.05rem;
+}
+
+.card-title a {
+  color: var(--gold);
+}
+
+.card-meta {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 0.3rem;
+}
+
+.card-excerpt {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+/* Grid of cards (dashboard, campaign list) */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   8. Tables
+   ═══════════════════════════════════════════════════════════════════ */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.data-table th {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-align: left;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+
+.data-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(45, 45, 90, 0.5);
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover td {
+  background: var(--bg-hover);
+}
+
+/* Highlight equipped inventory rows */
+.row-equipped td {
+  background: rgba(201, 166, 107, 0.05);
+}
+
+.equipped-icon {
+  color: var(--green-light);
+  font-weight: 600;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   9. Badges
+   ═══════════════════════════════════════════════════════════════════ */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;   /* pill shape */
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Campaign status */
+.badge-status-active    { background: rgba(45, 106, 79, 0.3);  color: var(--green-light); border: 1px solid var(--green); }
+.badge-status-completed { background: rgba(29, 53, 87, 0.5);   color: var(--blue-light);  border: 1px solid var(--blue-light); }
+.badge-status-on_hold   { background: rgba(123, 94, 0, 0.35);  color: var(--amber-light); border: 1px solid var(--amber); }
+
+/* Campaign membership roles */
+.badge-dm     { background: rgba(201, 166, 107, 0.2); color: var(--gold);        border: 1px solid var(--gold-dark); }
+.badge-player { background: rgba(29, 53, 87, 0.4);   color: var(--blue-light);  border: 1px solid var(--blue-light); }
+
+/* Encounter difficulty */
+.badge-difficulty-easy   { background: rgba(45, 106, 79, 0.3);  color: var(--green-light); border: 1px solid var(--green); }
+.badge-difficulty-medium { background: rgba(123, 94, 0, 0.35);  color: var(--amber-light); border: 1px solid var(--amber); }
+.badge-difficulty-hard   { background: rgba(155, 34, 38, 0.35); color: #ff8c89; border: 1px solid var(--red); }
+.badge-difficulty-deadly { background: rgba(74, 29, 92, 0.5);   color: #c77dff; border: 1px solid var(--purple); }
+
+/* Encounter outcome */
+.badge-outcome-victory    { background: rgba(45, 106, 79, 0.3);  color: var(--green-light); border: 1px solid var(--green); }
+.badge-outcome-defeat     { background: rgba(155, 34, 38, 0.35); color: #ff8c89;            border: 1px solid var(--red); }
+.badge-outcome-fled       { background: rgba(123, 94, 0, 0.35);  color: var(--amber-light); border: 1px solid var(--amber); }
+.badge-outcome-negotiated { background: rgba(29, 53, 87, 0.5);   color: var(--blue-light);  border: 1px solid var(--blue-light); }
+.badge-outcome-unresolved { background: rgba(45, 45, 90, 0.5);   color: var(--text-muted);  border: 1px solid var(--border); }
+
+/* Item rarity */
+.badge-rarity-common    { color: #b0b0b0; border: 1px solid #555; background: rgba(80,80,80,0.2); }
+.badge-rarity-uncommon  { color: #52b788; border: 1px solid var(--green); background: rgba(45, 106, 79, 0.2); }
+.badge-rarity-rare      { color: #74c0fc; border: 1px solid #4dabf7; background: rgba(29,53,87,0.35); }
+.badge-rarity-very_rare { color: #c77dff; border: 1px solid var(--purple-light); background: rgba(74,29,92,0.35); }
+.badge-rarity-legendary { color: var(--amber-light); border: 1px solid var(--gold); background: rgba(123,94,0,0.35); }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   10. Flash Messages
+   ═══════════════════════════════════════════════════════════════════ */
+.messages-container {
+  max-width: 1200px;
+  margin: 1rem auto 0;
+  padding: 0 1.5rem;
+}
+
+.message {
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  border-left: 4px solid;
+}
+
+.message-success {
+  background: rgba(45, 106, 79, 0.2);
+  border-color: var(--green-light);
+  color: var(--green-light);
+}
+
+.message-error {
+  background: rgba(155, 34, 38, 0.2);
+  border-color: var(--red-light);
+  color: #ff8c89;
+}
+
+.message-warning {
+  background: rgba(123, 94, 0, 0.2);
+  border-color: var(--amber-light);
+  color: var(--amber-light);
+}
+
+.message-info {
+  background: rgba(29, 53, 87, 0.35);
+  border-color: var(--blue-light);
+  color: var(--blue-light);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   11. Page-specific components
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Page header ── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-gold);
+}
+
+.page-header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── Dashboard sections ── */
+.dashboard-section {
+  margin-top: 2.5rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-header h2 {
+  margin-bottom: 0;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-state p {
+  margin-bottom: 1rem;
+}
+
+/* ── Breadcrumb ── */
+.breadcrumb {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.breadcrumb a {
+  color: var(--text-muted);
+}
+
+.breadcrumb a:hover {
+  color: var(--gold);
+}
+
+/* ── Filter tabs ── */
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.filter-tab {
+  padding: 0.5rem 1rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.filter-tab:hover {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.filter-tab-active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+/* ── Campaign list row ── */
+.campaign-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.campaign-row-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.campaign-row-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+/* ── Campaign detail: two-column layout ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+@media (max-width: 700px) {
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Character detail ── */
+.stat-block {
+  margin-bottom: 0;
+}
+
+.stat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.stat-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.stat-number {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.hp {
+  color: var(--green-light);
+}
+
+.background-story {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.background-story h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.character-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ── Session detail ── */
+.session-summary {
+  color: var(--text);
+  line-height: 1.8;
+}
+
+.session-summary p {
+  margin-bottom: 0.75rem;
+}
+
+.encounter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.encounter-card {
+  padding: 1.25rem 1.5rem;
+}
+
+.encounter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.encounter-header h3 {
+  margin-bottom: 0;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.encounter-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.encounter-description {
+  color: var(--text-muted);
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
+/* ── Auth pages ── */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-gold);
+}
+
+.auth-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.auth-subtitle {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  font-family: 'Crimson Text', serif;
+  font-weight: 400;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.seed-hint {
+  margin-top: 1.5rem;
+  padding: 0.85rem 1rem;
+  background: rgba(45, 45, 90, 0.4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.seed-hint p {
+  margin-bottom: 0.15rem;
+}
+
+/* ── Add item page ── */
+.add-item-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 800px) {
+  .add-item-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Campaign description in detail view ── */
+.campaign-description {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--text);
+  font-style: italic;
+  margin-bottom: 0;
+}
