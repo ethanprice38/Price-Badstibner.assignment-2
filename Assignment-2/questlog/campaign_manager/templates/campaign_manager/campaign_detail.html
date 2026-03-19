@@ -8,7 +8,7 @@
   <div>
     <h1>{{ campaign.name }}</h1>
     <p class="page-subtitle">
-      {% if campaign.world_name %}ðŸŒ {{ campaign.world_name }} &bull; {% endif %}
+      {% if campaign.world_name %}🌎 {{ campaign.world_name }} &bull; {% endif %}
       DM: {{ campaign.dungeon_master.username }}
       &bull;
       <span class="badge badge-status-{{ campaign.status }}">{{ campaign.get_status_display }}</span>
